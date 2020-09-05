@@ -18,7 +18,6 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi,fast)
 
-import queue
 
 def search(maze, searchMethod):
     return {
@@ -39,43 +38,35 @@ def bfs(maze):
     """
     # TODO: Write your code here
 
-
-    start = maze.getStart()
-    q = queue.Queue()
-    q.put(start)
-
+    q = []
     visited = {}
+    q.append(maze.getStart())
+    pairs = {}
 
-    predecessors = {}
-    predecessors[start] = None
+    selected = None
 
-    while (not q.empty()):
+    while len(q) > 0:
+        curr = q.pop(0)
+        if maze.isObjective(curr[0], curr[1]):
+            selected = curr
+            break
 
+        neighbors = maze.getNeighbors(curr[0], curr[1])
 
+        for n in neighbors:
+            if n not in visited:
+                visited[n] = True
+                q.append(n)
+                pairs[n] = curr
 
-        first = q.get()
-        current_pred = first
-        visited[first] = 1
-        neighbors = maze.getNeighbors(first[0], first[1])
+        curr = selected
+        path = []
+        while curr != maze.getStart():
+            path.append(curr)
+            curr = pairs[curr]
+        path.append(curr)
+        path.reverse()
 
-        for neighbor in neighbors:
-            if (not neighbor in visited) and (maze.isValidMove(neighbor[0], neighbor[1])):
-                predecessors[neighbor] = current_pred
-                visited[neighbor] = 1
-                q.put(neighbor)
-
-    dots = maze.getObjectives()
-
-    goal = maze.getObjectives()[0]
-    path = []
-    path.append(goal)
-    current = goal
-
-    while (current != start):
-        path.append(predecessors[current])
-        current = predecessors[current]
-
-    path.append(start)
 
     return path
 
