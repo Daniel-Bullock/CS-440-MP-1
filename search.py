@@ -40,10 +40,9 @@ def bfs(maze):
 
     q = []
     visited = {}
-    q.append(maze.getStart())
-    pairs = {}
-
+    keys = {}
     selected = None
+    q.append(maze.getStart())
 
     while len(q) > 0:
         curr = q.pop(0)
@@ -57,16 +56,15 @@ def bfs(maze):
             if n not in visited:
                 visited[n] = True
                 q.append(n)
-                pairs[n] = curr
+                keys[n] = curr
 
-        curr = selected
-        path = []
-        while curr != maze.getStart():
-            path.append(curr)
-            curr = pairs[curr]
+    curr = selected
+    path = []
+    while curr != maze.getStart():
         path.append(curr)
-        path.reverse()
-
+        curr = keys[curr]
+    path.append(curr)
+    path.reverse()
 
     return path
 
