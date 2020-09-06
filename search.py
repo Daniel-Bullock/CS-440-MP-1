@@ -18,6 +18,8 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi,fast)
 
+import heapq
+
 
 def search(maze, searchMethod):
     return {
@@ -27,6 +29,7 @@ def search(maze, searchMethod):
         "astar_multi": astar_multi,
         "fast": fast,
     }.get(searchMethod)(maze)
+
 
 def bfs(maze):
     """
@@ -63,11 +66,11 @@ def bfs(maze):
     while curr != maze.getStart():
         path.append(curr)
         curr = keys[curr]
+
     path.append(curr)
-    path.reverse()
+    path.reverse()   # backtrace
 
     return path
-
 
 
 def astar(maze):
@@ -78,8 +81,77 @@ def astar(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    # TODO: Write your code here
-    return []
+    # TODO: Write your code here\
+
+    start = maze.getStart()
+    #print(start)
+    end = maze.getObjectives()[0]  # 0 needed so it's not the list it's the end spot
+    #print(end)
+    pq = []     # priority queue  - filled with tuple of f, x&y, g(path distance from start)
+    heapq.heappush(pq, (manhattan_distance(start, end), start, 0))
+    visited = set()
+    map = {}
+    solvable = True
+    at_collectible = None
+
+    while len(pq) > 0:
+        #print("in")
+
+        curr = heapq.heappop(pq)
+        curr_pos = curr[1]
+        #print("curr_pos ")
+        #print(curr_pos)
+        #if curr_pos in visited:
+        #    continue
+        #visited.add(curr_pos) ADD TO VISITED IN THE NEIGHBOR LOOP
+
+        if curr_pos == end:
+            at_collectible = curr
+            break
+
+
+        neighbors = maze.getNeighbors(curr_pos[0], curr_pos[1])
+
+        for n in neighbors:
+
+            new_curr = (manhattan_distance(n, end)+curr[2]+1, (n[0], n[1]), curr[2]+1)
+            if n not in visited and maze.isValidMove(n[0], n[1]):
+                map[new_curr] = curr
+                #f = manhattan_distance(curr_pos, end) + curr[2] # f(x) = h(x) = g(x)
+                heapq.heappush(pq, new_curr)
+                visited.add(n)
+        #print("queue")
+        #print(pq)
+    curr = at_collectible
+    path = []
+    while curr[1] != start:
+        path.append(curr[1])
+        curr = map[curr]
+    path.append(curr[1])
+    path.reverse()
+
+    return path
+
+
+def manhattan_distance(start, end):
+    distance = abs(start[0] - end[0]) + abs(start[1] - end[1])
+    return distance
+
+
+def backtrace(parent_map, start, end_):
+    print("end_")
+    print(end_)
+    path = [end_]
+    while path[-1] != start:  # while last element doesn't equal start
+        print("path")
+        print(path)
+        # print(path[-1])
+        print("parent_map")
+        print(parent_map)
+        path.append(parent_map[path[-1]])
+    path.reverse()
+    return path
+
 
 def astar_corner(maze):
     """
@@ -91,6 +163,7 @@ def astar_corner(maze):
         """
     # TODO: Write your code here
     return []
+
 
 def astar_multi(maze):
     """
