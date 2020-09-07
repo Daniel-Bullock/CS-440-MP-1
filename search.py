@@ -241,7 +241,7 @@ def astar_multi(maze):
 
         if curr in visited:
             continue
-        heuristic = closest(maze, curr, curr_goal)
+        heuristic = min_distance(goals, curr)
 
         f = heuristic + len(curr_path) - 1
         visited[curr] = f
@@ -250,25 +250,21 @@ def astar_multi(maze):
             if len(goals) == 0:
                 return curr_path
             else:
-                #print("before")
-                #print(curr_goal)
                 goals_pq = new_pq(maze, goals, curr)
                 f, curr_goal = heapq.heappop(goals_pq)
-                #print("after")
-                #print(curr_goal)
                 pq = []
                 heapq.heappush(pq, (f, curr_path))
                 visited.clear()
                 continue
         for item in maze.getNeighbors(curr[0], curr[1]):
-            heuristic = closest(maze, item, curr_goal)
+            heuristic = min_distance(goals, item)
             new_f = heuristic + len(curr_path) - 1
             if item not in visited:
                 heapq.heappush(pq, (new_f, curr_path + [item]))
-            else:    # checks if overlap has smaller f
+            else:  # checks if overlap has smaller f
                 if new_f < visited[item]:
                     visited[item] = new_f
-                    heapq.heappush(pq,(new_f, curr_path + [item]))
+                    heapq.heappush(pq, (new_f, curr_path + [item]))
 
     return []
 
