@@ -19,6 +19,8 @@ files and classes when code is run, so be careful to not modify anything else.
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi,fast)
 
 import heapq
+import math
+import queue
 
 
 def search(maze, searchMethod):
@@ -68,7 +70,7 @@ def bfs(maze):
         curr = keys[curr]
 
     path.append(curr)
-    path.reverse()   # backtrace
+    path.reverse()  # backtrace
 
     return path
 
@@ -84,49 +86,41 @@ def astar(maze):
     # TODO: Write your code here\
 
     start = maze.getStart()
-    #print(start)
     end = maze.getObjectives()[0]  # 0 needed so it's not the list it's the end spot
-    #print(end)
-    pq = []     # priority queue  - filled with tuple of f, x&y, g(path distance from start)
+
+    pq = []  # priority queue  - filled with tuple of f, x&y, g(path distance from start)
     heapq.heappush(pq, (manhattan_distance(start, end), start, 0))
+
     visited = set()
-    map = {}
+    map_ = {}
     solvable = True
     at_collectible = None
 
     while len(pq) > 0:
-        #print("in")
 
         curr = heapq.heappop(pq)
         curr_pos = curr[1]
-        #print("curr_pos ")
-        #print(curr_pos)
-        #if curr_pos in visited:
-        #    continue
-        #visited.add(curr_pos) ADD TO VISITED IN THE NEIGHBOR LOOP
 
         if curr_pos == end:
             at_collectible = curr
             break
 
-
         neighbors = maze.getNeighbors(curr_pos[0], curr_pos[1])
 
         for n in neighbors:
 
-            new_curr = (manhattan_distance(n, end)+curr[2]+1, (n[0], n[1]), curr[2]+1)
+            new_curr = (manhattan_distance(n, end) + curr[2] + 1, (n[0], n[1]), curr[2] + 1)
+
             if n not in visited and maze.isValidMove(n[0], n[1]):
-                map[new_curr] = curr
-                #f = manhattan_distance(curr_pos, end) + curr[2] # f(x) = h(x) = g(x)
+                map_[new_curr] = curr
                 heapq.heappush(pq, new_curr)
                 visited.add(n)
-        #print("queue")
-        #print(pq)
+
     curr = at_collectible
     path = []
     while curr[1] != start:
         path.append(curr[1])
-        curr = map[curr]
+        curr = map_[curr]
     path.append(curr[1])
     path.reverse()
 
@@ -162,7 +156,26 @@ def astar_corner(maze):
     @return path: a list of tuples containing the coordinates of each state in the computed path
         """
     # TODO: Write your code here
+    """
+    Plan:
+    Do normal a* but then .clear visited after each new goal is found
+    new  h = Manhattan distance to the nearest goal and then the manhattan distance to the other goals starting from this nearest goal. 
+    new priority queue --  tuple (f, x&y, goals_left, 
+    """
+
+
     return []
+
+
+def closest_goal(goals, curr):
+    dist = math.inf  # infinity
+    next_goal = (0, 0)
+    for goal in goals:
+        h = manhattan_distance(goal, curr)
+        if h < dist:
+            dist = h
+            next_goal = goal
+    return next_goal
 
 
 def astar_multi(maze):
@@ -175,7 +188,88 @@ def astar_multi(maze):
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
     # TODO: Write your code here
+    pq = []
+    visited = {}
+
+    goals = maze.getObjectives()
+    goals_pq = new_pq(maze, goals, maze.getStart())
+
+    f, curr_goal = heapq.heappop(goals_pq)
+    heapq.heappush(pq, (f, [maze.getStart()]))
+
+    while len(pq) > 0:
+        curr_path = heapq.heappop(pq)[1]
+        curr = curr_path[-1]
+
+        if curr in visited:
+            continue
+        heuristic = closest(maze, curr, curr_goal)
+
+        f = heuristic + len(curr_path) - 1
+        visited[curr] = f
+        if curr in goals:
+            goals.remove(curr)
+            if len(goals) == 0:
+                return curr_path
+            else:
+                print("before")
+                print(curr_goal)
+                goals_pq = new_pq(maze, goals, curr)
+                f, curr_goal = heapq.heappop(goals_pq)
+                print("after")
+                print(curr_goal)
+                pq = []
+                heapq.heappush(pq, (f, curr_path))
+                visited.clear()
+                continue
+        for item in maze.getNeighbors(curr[0], curr[1]):
+            heuristic = closest(maze, item, curr_goal)
+            new_f = heuristic + len(curr_path) - 1
+            if item not in visited:
+                heapq.heappush(pq, (new_f, curr_path + [item]))
+            else:    # checks if overlap has smaller f
+                if new_f < visited[item]:
+                    visited[item] = new_f
+                    heapq.heappush(pq,(new_f, curr_path + [item]))
+
     return []
+
+
+def closest(maze, start, end):
+    distance = abs(start[0] - end[0]) + abs(start[1] - end[1])
+    return distance
+
+
+def closestt(maze, start, end):
+    visited = set()
+    q = [[start]]
+    while len(q) > 0:
+
+        curr_path = q.pop(0)
+        curr = curr_path[-1]
+
+        if curr in visited:
+            continue
+
+        visited.add(curr)
+
+        if curr == end:
+
+            return len(curr_path)
+
+        for n in maze.getNeighbors(curr[0], curr[1]):
+            if n not in visited:
+                q.append(curr_path + [n])
+    print("return 0")
+    return 0
+
+
+def new_pq(maze, goals, start):
+    pq = []
+    for goal in goals:
+        f = closest(maze, start, goal)
+        heapq.heappush(pq, (f, goal))
+    return pq
 
 
 def fast(maze):
