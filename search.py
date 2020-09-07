@@ -177,7 +177,7 @@ def astar_corner(maze):
 
         if curr in visited:
             continue
-        heuristic = closest(maze, curr, curr_goal)
+        heuristic = min_distance(goals, curr)
 
         f = heuristic + len(curr_path) - 1
         visited[curr] = f
@@ -186,18 +186,14 @@ def astar_corner(maze):
             if len(goals) == 0:
                 return curr_path
             else:
-                #print("before")
-                #print(curr_goal)
                 goals_pq = new_pq(maze, goals, curr)
                 f, curr_goal = heapq.heappop(goals_pq)
-                #print("after")
-                #print(curr_goal)
                 pq = []
                 heapq.heappush(pq, (f, curr_path))
                 visited.clear()
                 continue
         for item in maze.getNeighbors(curr[0], curr[1]):
-            heuristic = closest(maze, item, curr_goal)
+            heuristic = min_distance(goals, item)
             new_f = heuristic + len(curr_path) - 1
             if item not in visited:
                 heapq.heappush(pq, (new_f, curr_path + [item]))
@@ -209,7 +205,7 @@ def astar_corner(maze):
     return []
 
 
-def closest_goal(goals, curr):
+def min_distance(goals, curr):
     dist = math.inf  # infinity
     next_goal = (0, 0)
     for goal in goals:
@@ -217,7 +213,7 @@ def closest_goal(goals, curr):
         if h < dist:
             dist = h
             next_goal = goal
-    return next_goal
+    return dist
 
 
 def astar_multi(maze):
@@ -277,12 +273,7 @@ def astar_multi(maze):
     return []
 
 
-def closest(maze, start, end):
-    distance = abs(start[0] - end[0]) + abs(start[1] - end[1])
-    return distance
-
-
-def closestt(maze, start, end):
+def nearest(maze, start, end):
     visited = set()
     q = [[start]]
     while len(q) > 0:
@@ -367,3 +358,8 @@ def fast(maze):
                     visited[item] = new_f
                     heapq.heappush(pq, (new_f, curr_path + [item]))
     return []
+
+
+def closest(maze, start, end):
+    distance = abs(start[0] - end[0]) + abs(start[1] - end[1])
+    return distance
