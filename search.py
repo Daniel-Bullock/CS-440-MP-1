@@ -150,66 +150,6 @@ def backtrace(parent_map, start, end_):
     return path
 
 
-def astar_corner_1(maze):
-    """
-    Runs A star for part 2 of the assignment in the case where there are four corner objectives.
-
-    @param maze: The maze to execute the search on.
-
-    @return path: a list of tuples containing the coordinates of each state in the computed path
-        """
-    # TODO: Write your code here
-    """
-    Plan:
-    Do normal a* but then .clear visited after each new goal is found
-    new  h = Manhattan distance to the nearest goal and then the manhattan distance to the other goals starting from this nearest goal. 
-    new priority queue --  tuple (f, x&y, goals_left, 
-    """
-    pq = []
-    visited = {}
-
-    goals = maze.getObjectives()
-    goals_pq = new_pq_copy(maze, goals, maze.getStart())
-
-    f, curr_goal = heapq.heappop(goals_pq)
-    heapq.heappush(pq, (f, [maze.getStart()]))
-
-    while len(pq) > 0:
-        curr_path = heapq.heappop(pq)[1]
-        curr = curr_path[-1]
-
-        if curr in visited:
-            continue
-        heuristic = min_manhattan(goals, curr)
-        # heuristic = min_distance(goals, curr)
-
-        f = heuristic + len(curr_path) - 1
-        visited[curr] = f
-        if curr in goals:
-            goals.remove(curr)
-            if len(goals) == 0:
-                return curr_path
-            else:
-                goals_pq = new_pq_copy(maze, goals, curr)
-                f, curr_goal = heapq.heappop(goals_pq)
-                pq = []
-                heapq.heappush(pq, (f, curr_path))
-                visited.clear()
-                continue
-        for item in maze.getNeighbors(curr[0], curr[1]):
-            heuristic = min_manhattan(goals, item)
-            # heuristic = min_distance(goals, item)
-            new_f = heuristic + len(curr_path) - 1
-            if item not in visited:
-                heapq.heappush(pq, (new_f, curr_path + [item]))
-            else:  # checks if overlap has smaller f
-                if new_f < visited[item]:
-                    visited[item] = new_f
-                    heapq.heappush(pq, (new_f, curr_path + [item]))
-
-    return []
-
-
 lengthMin = {}
 
 
@@ -240,7 +180,7 @@ def min_manhattan(goals, start):
         goals_copy2 = goals_copy.copy()
         curr_goal = min_goal
         while paths < len(goals) - 1:
-            min_dist = manhattan_distance(curr_goal, goals[0])
+            min_dist = manhattan_distance(curr_goal, goals_copy[0])
             flag = False
             for g in goals_copy:
                 if manhattan_distance(curr_goal, g) < min_dist:
